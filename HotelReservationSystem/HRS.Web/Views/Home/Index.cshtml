@@ -1,0 +1,110 @@
+﻿@model List<int>
+@{
+    ViewBag.Title = "Index";
+}
+<div class="col-md-12">
+    <h1>REZERVASYON EKLE</h1>
+</div>
+<div class="col-md-6">
+
+    <form>
+
+        <div class="form-row">
+            <div class="form-group col-md-12">
+                <label for="inputEmail4">Ad - Soyad</label>
+                <input type="text" class="form-control" id="AdSoyad">
+            </div>
+        </div>
+        <div class="form-group col-md-12">
+            <label for="inputAddress">Giriş Tarihi</label>
+            <input type="date" class="form-control" id="GirisTarih" placeholder="Giriş Tarihi">
+        </div>
+        <div class="form-group col-md-12">
+            <label for="inputAddress2">Çıkış Tarihi</label>
+            <input type="date" class="form-control" id="CikisTarihi" placeholder="Çıkış Tarihi">
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-12">
+                <label for="inputState">Kişi Sayısı</label>
+                <select id="NumberOfPeople" class="form-control">
+                    <option selected>Seçiniz</option>
+                    @foreach (var item in Model)
+                    {
+                        <option value="@item">@item</option>
+                    }
+                </select>
+            </div>
+
+        </div>
+        <div class="col-md-12">
+            <button type="button" class="btn btn-primary" id="hesap">Rezervasyon Hesapla</button>
+        </div>
+    </form>
+
+</div>
+<div class="col-md-6">
+    <div class="col-md-12">
+        <label>
+            Rezervasyon Ücreti : <span id="ucret"> </span> ₺
+        </label>
+
+    </div>
+    <div class="col-md-12">
+        <button type="button" class="btn btn-primary" id="rezervasyon">Rezervasyon Yap</button>
+    </div>
+</div>
+
+@section scripts{
+
+    <script type="text/javascript">
+
+        $("#hesap").on("click", function (e) {
+            debugger;
+            var data = {
+                "FullName": $("#AdSoyad").val(),
+                "CheckIn": $("#GirisTarih").val(),
+                "CheckOut": $("#CikisTarihi").val(),
+                "NumberOfPeople": $("#NumberOfPeople").val()
+            }
+            $.ajax({
+                type: "POST", // GET ya da POST olabilir
+                url: this.baseURI+"Home/Calculator/", // Url
+                data: JSON.stringify(data), // Sunucuya gönderilen veri
+                contentType: "application/json",
+                success: function (msg) {
+                    console.log(msg);
+                    if (msg.FullName == null) {
+                        alert("Kontrol Ediniz.");
+                    }
+                    else {
+                        $("#ucret").data(msg);
+                        $("#ucret").text(msg.TotalPrice);
+                    }
+                },
+                error: function (err) { alert(err.responseText); }
+            });
+        });
+
+        $("#rezervasyon").on("click", function (e) {
+            debugger;
+            var data = {
+                "FullName": $("#ucret").data("FullName"),
+                "CheckIn": moment($("#ucret").data("CheckIn")).format("DD.MM.YYYY"),
+                "CheckOut": moment($("#ucret").data("CheckOut")).format("DD.MM.YYYY"),
+                "NumberOfPeople": $("#ucret").data("NumberOfPeople"),
+                "TotalPrice": $("#ucret").data("TotalPrice")
+            }
+
+            $.ajax({
+                type: "POST", // GET ya da POST olabilir
+                url: this.baseURI + "Home/AddReservation/", // Url
+                data: JSON.stringify(data), // Sunucuya gönderilen veri
+                contentType: "application/json",
+                success: function (msg) {
+                    alert(msg)
+                },
+                error: function (err) { alert(err.responseText); }
+            });
+        });
+    </script>
+}
